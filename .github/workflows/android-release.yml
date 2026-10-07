@@ -1,0 +1,66 @@
+name: Android APK Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Typen prüfen
+        run: npx tsc --noEmit
+
+      - name: Android-Projekt erzeugen
+        run: npx expo prebuild --platform android --no-install
+
+      - name: APK bauen
+        working-directory: android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon
+
+      - name: APK umbenennen
+        id: apk
+        run: |
+          VERSION="${GITHUB_REF_NAME:-dev}"
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/DruckPunkt-${VERSION}.apk"
+          echo "path=dist/DruckPunkt-${VERSION}.apk" >> "$GITHUB_OUTPUT"
+
+      - name: APK als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: DruckPunkt-apk
+          path: dist/*.apk
+
+      - name: Release veröffentlichen
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.apk
+          generate_release_notes: true
+          body: |
+            DruckPunkt als Android-APK zum direkten Installieren.
+
+            Installation: APK herunterladen, öffnen und „Installation aus unbekannten Quellen“ für den Browser bzw. Dateimanager erlauben.
+            Vor einem Update ein Backup in der App erstellen.

@@ -177,7 +177,7 @@ export default function SettingsScreen() {
       <Card>
         <Text style={{ color: c.ink, fontWeight: '700', marginBottom: 4 }}>Hinweis</Text>
         <Muted>
-          Diese App ersetzt keine ärztliche Beratung. Die Farben und Einordnungen sind nur eine Orientierung. Alle Daten bleiben auf deinem Gerät.
+          Diese App ersetzt keine ärztliche Beratung. Alle Daten bleiben auf deinem Gerät.
         </Muted>
       </Card>
     </ScrollView>

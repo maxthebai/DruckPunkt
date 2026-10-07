@@ -5,7 +5,6 @@ import { useStore } from '../store';
 import { Card, Chip, H, Muted } from '../components/ui';
 import { LineChart } from '../components/LineChart';
 import { averages } from '../stats';
-import { classify, levelColor, levelLabel } from '../classify';
 import { daysAgo } from '../dates';
 
 export default function TrendsScreen() {
@@ -25,7 +24,6 @@ export default function TrendsScreen() {
   const evening = averages(list.filter((m) => new Date(m.ts).getHours() >= 17));
 
   const pts = (k: 'sys' | 'dia' | 'pulse') => list.map((m) => ({ t: new Date(m.ts).getTime(), v: m[k] }));
-  const lvl = a.sys && a.dia ? classify(a.sys, a.dia) : null;
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
@@ -58,11 +56,6 @@ export default function TrendsScreen() {
                 to={to}
                 min={40}
                 max={200}
-                zones={[
-                  { from: 40, to: 130, color: c.ok },
-                  { from: 130, to: 140, color: c.warn },
-                  { from: 140, to: 200, color: c.bad },
-                ]}
               />
             ) : (
               <LineChart
@@ -71,10 +64,8 @@ export default function TrendsScreen() {
                 to={to}
                 min={40}
                 max={140}
-                zones={[{ from: 60, to: 100, color: c.ok }]}
               />
             )}
-            {metric === 'bp' && <Muted style={{ marginTop: 6 }}>Farbflächen zeigen die Bereiche für „oben“: normal, hochnormal, erhöht.</Muted>}
           </Card>
 
           <Card>
@@ -82,7 +73,6 @@ export default function TrendsScreen() {
             <Text style={{ color: c.ink, fontSize: 34, fontWeight: '800' }}>
               {a.sys}/{a.dia} <Text style={{ fontSize: 16, color: c.muted }}>Puls {a.pulse}</Text>
             </Text>
-            {lvl && <Text style={{ color: levelColor(lvl, c), fontWeight: '700' }}>{levelLabel(lvl)}</Text>}
           </Card>
 
           <Card>
@@ -106,7 +96,6 @@ export default function TrendsScreen() {
           </Card>
         </>
       )}
-      <Muted>Die Einordnung ist nur eine Orientierung und ersetzt keine ärztliche Beratung.</Muted>
     </ScrollView>
   );
 }

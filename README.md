@@ -7,8 +7,8 @@ Alle Daten bleiben lokal auf dem Gerät. Kein Konto, keine Cloud, kein Tracking,
 ## Funktionen
 
 - **Messen:** Eigener Zahlenblock für oben, unten und Puls. Datum und Uhrzeit setzt die App automatisch. Notiz-Chips für Stress, Kaffee, Sport und Medikamente.
-- **Verlauf:** Alle Messungen nach Tagen gruppiert, farbig eingeordnet. Tippen zum Bearbeiten, nach links wischen zum Löschen.
-- **Trends:** Liniendiagramm für 7, 30 und 90 Tage mit Farbzonen, Durchschnitt, Morgens/Abends-Vergleich.
+- **Verlauf:** Alle Messungen nach Tagen gruppiert. Tippen zum Bearbeiten, nach links wischen zum Löschen.
+- **Trends:** Liniendiagramm für 7, 30 und 90 Tage, Durchschnitt, Morgens/Abends-Vergleich.
 - **Ziele:** Serie, Wochenziel mit Fortschrittsring, Abzeichen, Wochenrückblick.
 - **Erinnerungen:** Lokale Benachrichtigungen zu frei wählbaren Zeiten, dazu „In 30 Minuten erinnern“.
 - **Bericht:** PDF und CSV für den Arztbesuch.
@@ -48,4 +48,4 @@ Das Profil `preview` in `eas.json` erzeugt eine installierbare `.apk`.
 
 ## Hinweis
 
-DruckPunkt ersetzt keine ärztliche Beratung. Die Einordnung der Werte ist nur eine Orientierung.
+DruckPunkt ersetzt keine ärztliche Beratung.

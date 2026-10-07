@@ -5,7 +5,6 @@ import { useTheme } from '../theme';
 import { useStore } from '../store';
 import { Badge, Button, Card, Chip, Muted } from '../components/ui';
 import { Numpad } from '../components/Numpad';
-import { classify, levelColor, levelHint, levelLabel } from '../classify';
 import { currentStreak, measuredToday, motivation } from '../stats';
 import { fmtDate, fmtTime } from '../dates';
 import { snoozeReminder } from '../notifications';
@@ -25,7 +24,7 @@ export default function HomeScreen() {
   const [when, setWhen] = useState<Date>(new Date());
   const [custom, setCustom] = useState(false); // Zeit manuell geändert
   const [dateModal, setDateModal] = useState(false);
-  const [msg, setMsg] = useState<{ text: string; hint: string | null } | null>(null);
+  const [msg, setMsg] = useState<{ text: string } | null>(null);
   const timer = useRef<any>(null);
 
   const list = data.measurements;
@@ -54,7 +53,6 @@ export default function HomeScreen() {
   const sys = Number(vals.sys);
   const dia = Number(vals.dia);
   const pulse = Number(vals.pulse);
-  const preview = sys && dia ? classify(sys, dia) : null;
 
   const save = () => {
     if (!(sys >= 60 && sys <= 260)) return Alert.alert('Oben prüfen', 'Der obere Wert sollte zwischen 60 und 260 liegen.');
@@ -64,8 +62,7 @@ export default function HomeScreen() {
     const ts = custom ? when : new Date();
     add({ ts: ts.toISOString(), sys, dia, pulse, tags, note: note.trim() });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    const lvl = classify(sys, dia);
-    setMsg({ text: motivation(list.length + 1, today ? streak : streak + 1, true), hint: levelHint(lvl) });
+    setMsg({ text: motivation(list.length + 1, today ? streak : streak + 1, true) });
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setMsg(null), 8000);
     setVals({ sys: '', dia: '', pulse: '' });
@@ -97,7 +94,6 @@ export default function HomeScreen() {
         <Card style={{ borderColor: c.ok }}>
           <Text style={{ color: c.ink, fontSize: 16, fontWeight: '700' }}>Gespeichert</Text>
           <Muted>{msg.text}</Muted>
-          {msg.hint && <Text style={{ color: c.bad, marginTop: 8, lineHeight: 20 }}>{msg.hint}</Text>}
         </Card>
       )}
 
@@ -118,9 +114,7 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      <View style={{ minHeight: 28, marginBottom: 8 }}>
-        {preview && <Badge label={levelLabel(preview)} color={levelColor(preview, c)} />}
-      </View>
+      <View style={{ height: 8 }} />
 
       <Numpad onDigit={onDigit} onBack={onBack} onNext={onNext} nextLabel={active === 'pulse' ? '' : 'Weiter'} />
 

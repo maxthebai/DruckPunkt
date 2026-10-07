@@ -15,8 +15,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../theme';
 import { useStore } from '../store';
-import { Badge, Button, Chip, Muted } from '../components/ui';
-import { classify, levelColor, levelLabel } from '../classify';
+import { Button, Chip, Muted } from '../components/ui';
 import { dayKey, fmtDayLong, fmtTime } from '../dates';
 import { Measurement, TAGS } from '../types';
 
@@ -41,8 +40,6 @@ function SwipeRow({ m, onOpen, onDelete }: { m: Measurement; onOpen: () => void;
       },
     }),
   ).current;
-  const lvl = classify(m.sys, m.dia);
-  const col = levelColor(lvl, c);
   const extra = [...m.tags, m.note].filter(Boolean).join(' · ');
   return (
     <View style={{ marginBottom: 8 }}>
@@ -56,7 +53,7 @@ function SwipeRow({ m, onOpen, onDelete }: { m: Measurement; onOpen: () => void;
         style={[s.row, { backgroundColor: c.card, borderColor: c.line, transform: [{ translateX: x }] }]}
       >
         <Pressable onPress={onOpen} style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 6, alignSelf: 'stretch', borderRadius: 3, backgroundColor: col, marginRight: 12 }} />
+          <View style={{ width: 6, alignSelf: 'stretch', borderRadius: 3, backgroundColor: c.accent, marginRight: 12 }} />
           <View style={{ flex: 1 }}>
             <Text style={{ color: c.ink, fontSize: 22, fontWeight: '800' }}>
               {m.sys}/{m.dia} <Text style={{ fontSize: 14, color: c.muted, fontWeight: '600' }}>Puls {m.pulse}</Text>
@@ -65,7 +62,6 @@ function SwipeRow({ m, onOpen, onDelete }: { m: Measurement; onOpen: () => void;
               {fmtTime(new Date(m.ts))} Uhr{extra ? ` · ${extra}` : ''}
             </Muted>
           </View>
-          <Badge label={levelLabel(lvl)} color={col} />
         </Pressable>
       </Animated.View>
     </View>

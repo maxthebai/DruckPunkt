@@ -39,6 +39,7 @@ export async function saveBackupToFolder(data: AppData): Promise<string> {
 export type RestorePreview = {
   data: AppData;
   count: number;
+  medCount: number;
   from: string | null;
   to: string | null;
 };
@@ -66,14 +67,17 @@ export async function pickBackup(): Promise<RestorePreview | null> {
   const data = sanitize(parsed.data);
   if (!data) throw new Error('Das Backup ist beschädigt. Es wurde nichts verändert.');
   const times = data.measurements.map((m) => m.ts).sort();
-  return { data, count: data.measurements.length, from: times[0] ?? null, to: times[times.length - 1] ?? null };
+  return { data, count: data.measurements.length, medCount: data.medChanges.length, from: times[0] ?? null, to: times[times.length - 1] ?? null };
 }
 
 export function mergeData(current: AppData, incoming: AppData): AppData {
   const seen = new Set(current.measurements.map((m) => m.ts));
   const add = incoming.measurements.filter((m) => !seen.has(m.ts));
+  const medSeen = new Set(current.medChanges.map((m) => `${m.ts}|${m.name.toLowerCase()}`));
+  const medAdd = incoming.medChanges.filter((m) => !medSeen.has(`${m.ts}|${m.name.toLowerCase()}`));
   return {
     ...current,
     measurements: [...current.measurements, ...add].sort((a, b) => a.ts.localeCompare(b.ts)),
+    medChanges: [...current.medChanges, ...medAdd].sort((a, b) => a.ts.localeCompare(b.ts)),
   };
 }

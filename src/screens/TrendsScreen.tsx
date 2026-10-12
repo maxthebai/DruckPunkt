@@ -4,7 +4,9 @@ import { useTheme } from '../theme';
 import { useStore } from '../store';
 import { Card, Chip, H, Muted } from '../components/ui';
 import { LineChart } from '../components/LineChart';
-import { averages } from '../stats';
+import { averages, beforeAfter, signed } from '../stats';
+import { medKindLabel } from '../types';
+import { fmtDate } from '../dates';
 import { daysAgo } from '../dates';
 
 export default function TrendsScreen() {
@@ -12,6 +14,8 @@ export default function TrendsScreen() {
   const { data } = useStore();
   const [range, setRange] = useState(30);
   const [metric, setMetric] = useState<'bp' | 'pulse'>('bp');
+  const [medId, setMedId] = useState<string | null>(null);
+  const [cmpDays, setCmpDays] = useState(14);
 
   const from = daysAgo(range - 1).getTime();
   const to = Date.now();
@@ -22,6 +26,13 @@ export default function TrendsScreen() {
   const a = averages(list);
   const morning = averages(list.filter((m) => new Date(m.ts).getHours() < 12));
   const evening = averages(list.filter((m) => new Date(m.ts).getHours() >= 17));
+
+  const meds = data.medChanges; // neueste zuerst
+  const selMed = meds.find((x) => x.id === medId) ?? meds[0] ?? null;
+  const ba = selMed ? beforeAfter(data.measurements, selMed.ts, cmpDays) : null;
+  const markers = meds
+    .map((x, i) => ({ t: new Date(x.ts).getTime(), label: 'M' }))
+    .filter((mk) => mk.t >= from && mk.t <= to);
 
   const pts = (k: 'sys' | 'dia' | 'pulse') => list.map((m) => ({ t: new Date(m.ts).getTime(), v: m[k] }));
 
@@ -49,13 +60,14 @@ export default function TrendsScreen() {
             {metric === 'bp' ? (
               <LineChart
                 series={[
-                  { name: 'Oben', color: c.accent, points: pts('sys') },
-                  { name: 'Unten', color: c.low, points: pts('dia') },
+                  { name: 'Systolisch', color: c.accent, points: pts('sys') },
+                  { name: 'Diastolisch', color: c.low, points: pts('dia') },
                 ]}
                 from={from}
                 to={to}
                 min={40}
                 max={200}
+                markers={markers}
               />
             ) : (
               <LineChart
@@ -64,6 +76,7 @@ export default function TrendsScreen() {
                 to={to}
                 min={40}
                 max={140}
+                markers={markers}
               />
             )}
           </Card>
@@ -96,6 +109,57 @@ export default function TrendsScreen() {
           </Card>
         </>
       )}
+      <Card>
+        <Text style={{ color: c.ink, fontSize: 17, fontWeight: '700', marginBottom: 8 }}>Vor und nach Medikamentenänderung</Text>
+        {!selMed || !ba ? (
+          <Muted>Trag unter „Verlauf“ eine Medikamentenänderung ein. Dann siehst du hier die Durchschnitte davor und danach.</Muted>
+        ) : (
+          <>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 4 }}>
+              {meds.map((x) => (
+                <Chip key={x.id} label={`${fmtDate(new Date(x.ts)).slice(0, 6)} ${x.name}`} on={x.id === selMed.id} onPress={() => setMedId(x.id)} />
+              ))}
+            </ScrollView>
+            <Muted>
+              {medKindLabel(selMed.kind)}
+              {selMed.dose ? ` · ${selMed.dose}` : ''} · {fmtDate(new Date(selMed.ts))}
+            </Muted>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
+              {[7, 14, 30].map((d) => (
+                <Chip key={d} label={`${d} Tage`} on={cmpDays === d} onPress={() => setCmpDays(d)} />
+              ))}
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+              <View style={{ width: '48%' }}>
+                <Muted>Davor</Muted>
+                <Text style={{ color: c.ink, fontSize: 26, fontWeight: '800' }}>
+                  {ba.before.count ? `${ba.before.sys}/${ba.before.dia}` : '–'}
+                </Text>
+                <Muted>
+                  Puls {ba.before.pulse ?? '–'} · {ba.before.count} Messungen
+                </Muted>
+              </View>
+              <View style={{ width: '48%' }}>
+                <Muted>Danach</Muted>
+                <Text style={{ color: c.ink, fontSize: 26, fontWeight: '800' }}>
+                  {ba.after.count ? `${ba.after.sys}/${ba.after.dia}` : '–'}
+                </Text>
+                <Muted>
+                  Puls {ba.after.pulse ?? '–'} · {ba.after.count} Messungen
+                </Muted>
+              </View>
+            </View>
+            {ba.before.count > 0 && ba.after.count > 0 ? (
+              <Text style={{ color: c.ink, fontSize: 16, fontWeight: '700', marginTop: 10 }}>
+                Unterschied: {signed(ba.diffSys)}/{signed(ba.diffDia)}, Puls {signed(ba.diffPulse)}
+              </Text>
+            ) : (
+              <Muted style={{ marginTop: 10 }}>Für den Vergleich braucht es Messungen in beiden Zeiträumen.</Muted>
+            )}
+            <Muted style={{ marginTop: 4 }}>Jeweils die {cmpDays} Tage vor bzw. nach dem Zeitpunkt der Änderung.</Muted>
+          </>
+        )}
+      </Card>
     </ScrollView>
   );
 }

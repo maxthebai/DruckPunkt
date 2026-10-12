@@ -89,3 +89,31 @@ export function motivation(count: number, streak: number, doneToday: boolean): s
   if (streak >= 3) return `${streak} Tage am Stück. Weiter so.`;
   return 'Gespeichert. Morgen wieder?';
 }
+
+export type BeforeAfter = {
+  before: ReturnType<typeof averages>;
+  after: ReturnType<typeof averages>;
+  diffSys: number | null;
+  diffDia: number | null;
+  diffPulse: number | null;
+};
+
+// Durchschnitt der Messungen in den `days` Tagen vor und nach einem Zeitpunkt (z. B. Medikamentenänderung).
+export function beforeAfter(list: Measurement[], ts: string, days: number): BeforeAfter {
+  const t = new Date(ts).getTime();
+  const w = days * 86400000;
+  const before = list.filter((m) => {
+    const x = new Date(m.ts).getTime();
+    return x < t && x >= t - w;
+  });
+  const after = list.filter((m) => {
+    const x = new Date(m.ts).getTime();
+    return x >= t && x <= t + w;
+  });
+  const b = averages(before);
+  const a = averages(after);
+  const d = (x: number | null, y: number | null) => (x !== null && y !== null ? y - x : null);
+  return { before: b, after: a, diffSys: d(b.sys, a.sys), diffDia: d(b.dia, a.dia), diffPulse: d(b.pulse, a.pulse) };
+}
+
+export const signed = (n: number | null): string => (n === null ? '–' : n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '±0');

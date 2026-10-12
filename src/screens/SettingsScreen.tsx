@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Alert, Platform, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, ScrollView, Switch, Text, View } from 'react-native';
 import { useTheme } from '../theme';
 import { useStore } from '../store';
 import { Button, Card, H, Muted } from '../components/ui';
 import { pickBackup, saveBackupToFolder, shareBackup } from '../backup';
-import { sharePdf, shareCsv } from '../report';
+import { ExportSection } from '../components/ExportSection';
+import { RemindersSection } from '../components/RemindersSection';
 import { fmtDate } from '../dates';
 
-const validTime = (t: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
 
 function SectionTitle({ children }: { children: string }) {
   const c = useTheme();
@@ -32,13 +32,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const setTime = (i: number, v: string) => {
-    const times = [...st.reminderTimes];
-    times[i] = v;
-    // Erst speichern, wenn die Zeit gültig ist, sonst bleibt der alte Wert aktiv.
-    setSettings({ reminderTimes: times });
-  };
-
   const markBackup = () => setSettings({ lastBackup: new Date().toISOString() });
 
   const doShare = () =>
@@ -59,7 +52,7 @@ export default function SettingsScreen() {
       const p = await pickBackup();
       if (!p) return;
       const range = p.from && p.to ? `\n${fmtDate(new Date(p.from))} bis ${fmtDate(new Date(p.to))}` : '';
-      Alert.alert('Backup gefunden', `${p.count} Messungen${range}`, [
+      Alert.alert('Backup gefunden', `${p.count} Messungen${p.medCount ? `, ${p.medCount} Medikamentenänderungen` : ''}${range}`, [
         { text: 'Abbrechen', style: 'cancel' },
         { text: 'Zusammenführen', onPress: () => merge(p.data) },
         {
@@ -103,41 +96,7 @@ export default function SettingsScreen() {
       )}
 
       <SectionTitle>Erinnerungen</SectionTitle>
-      <Card>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ color: c.ink, fontSize: 16 }}>Messung erinnern</Text>
-          <Switch value={st.remindersOn} onValueChange={(v) => setSettings({ remindersOn: v })} trackColor={{ true: c.accent }} />
-        </View>
-        {st.remindersOn &&
-          st.reminderTimes.map((t, i) => (
-            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-              <TextInput
-                value={t}
-                onChangeText={(v) => setTime(i, v)}
-                keyboardType="numbers-and-punctuation"
-                maxLength={5}
-                placeholder="08:00"
-                placeholderTextColor={c.muted}
-                style={{
-                  borderWidth: 1,
-                  borderColor: validTime(t) ? c.line : c.bad,
-                  color: c.ink,
-                  borderRadius: 10,
-                  padding: 10,
-                  fontSize: 18,
-                  width: 100,
-                }}
-              />
-              <Muted style={{ marginLeft: 10, flex: 1 }}>{validTime(t) ? 'Uhr' : 'Format HH:MM, z. B. 08:00'}</Muted>
-              {st.reminderTimes.length > 1 && (
-                <Button kind="ghost" title="Entfernen" onPress={() => setSettings({ reminderTimes: st.reminderTimes.filter((_, j) => j !== i) })} style={{ minHeight: 40 }} />
-              )}
-            </View>
-          ))}
-        {st.remindersOn && st.reminderTimes.length < 4 && (
-          <Button kind="ghost" title="Weitere Zeit hinzufügen" style={{ marginTop: 10 }} onPress={() => setSettings({ reminderTimes: [...st.reminderTimes, '12:00'] })} />
-        )}
-      </Card>
+      <RemindersSection />
 
       <SectionTitle>Wochenziel</SectionTitle>
       <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -164,10 +123,7 @@ export default function SettingsScreen() {
       </Card>
 
       <SectionTitle>Bericht für den Arzt</SectionTitle>
-      <Card>
-        <Button title="PDF-Bericht teilen" disabled={busy || !data.measurements.length} onPress={() => run(() => sharePdf(data.measurements))} />
-        <Button kind="ghost" title="CSV teilen" disabled={busy || !data.measurements.length} onPress={() => run(() => shareCsv(data.measurements))} style={{ marginTop: 10 }} />
-      </Card>
+      <ExportSection />
 
       <SectionTitle>Gefahrenbereich</SectionTitle>
       <Card>

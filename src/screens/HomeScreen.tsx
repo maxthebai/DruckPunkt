@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme';
 import { useStore } from '../store';
 import { Badge, Button, Card, Chip, Muted } from '../components/ui';
 import { Numpad } from '../components/Numpad';
+import { DateTimeModal } from '../components/DateTimeModal';
 import { currentStreak, measuredToday, motivation } from '../stats';
 import { fmtDate, fmtTime } from '../dates';
 import { snoozeReminder } from '../notifications';
@@ -12,7 +13,7 @@ import { TAGS } from '../types';
 
 type Field = 'sys' | 'dia' | 'pulse';
 const ORDER: Field[] = ['sys', 'dia', 'pulse'];
-const LABEL: Record<Field, string> = { sys: 'Oben', dia: 'Unten', pulse: 'Puls' };
+const LABEL: Record<Field, string> = { sys: 'Systolisch', dia: 'Diastolisch', pulse: 'Puls' };
 
 export default function HomeScreen() {
   const c = useTheme();
@@ -55,9 +56,9 @@ export default function HomeScreen() {
   const pulse = Number(vals.pulse);
 
   const save = () => {
-    if (!(sys >= 60 && sys <= 260)) return Alert.alert('Oben prüfen', 'Der obere Wert sollte zwischen 60 und 260 liegen.');
-    if (!(dia >= 30 && dia <= 160)) return Alert.alert('Unten prüfen', 'Der untere Wert sollte zwischen 30 und 160 liegen.');
-    if (dia >= sys) return Alert.alert('Werte prüfen', 'Der untere Wert muss kleiner sein als der obere.');
+    if (!(sys >= 60 && sys <= 260)) return Alert.alert('Systolisch prüfen', 'Der systolische Wert sollte zwischen 60 und 260 liegen.');
+    if (!(dia >= 30 && dia <= 160)) return Alert.alert('Diastolisch prüfen', 'Der diastolische Wert sollte zwischen 30 und 160 liegen.');
+    if (dia >= sys) return Alert.alert('Werte prüfen', 'Der diastolische Wert muss kleiner sein als der systolische.');
     if (!(pulse >= 30 && pulse <= 220)) return Alert.alert('Puls prüfen', 'Der Puls sollte zwischen 30 und 220 liegen.');
     const ts = custom ? when : new Date();
     add({ ts: ts.toISOString(), sys, dia, pulse, tags, note: note.trim() });
@@ -71,11 +72,6 @@ export default function HomeScreen() {
     setNote('');
     setCustom(false);
     setWhen(new Date());
-  };
-
-  const shift = (ms: number) => {
-    setWhen(new Date(when.getTime() + ms));
-    setCustom(true);
   };
 
   return (
@@ -104,7 +100,7 @@ export default function HomeScreen() {
             onPress={() => setActive(f)}
             style={[
               s.field,
-              { backgroundColor: c.card, borderColor: active === f ? c.accent : c.line, borderWidth: active === f ? 2.5 : 1 },
+              { backgroundColor: c.card, borderColor: active === f ? c.accent : c.line, borderWidth: 2 },
             ]}
             accessibilityLabel={`${LABEL[f]} Wert`}
           >
@@ -148,40 +144,20 @@ export default function HomeScreen() {
         />
       )}
 
-      <Modal visible={dateModal} transparent animationType="fade" onRequestClose={() => setDateModal(false)}>
-        <View style={s.backdrop}>
-          <View style={[s.sheet, { backgroundColor: c.card }]}>
-            <Text style={{ color: c.ink, fontSize: 18, fontWeight: '800', marginBottom: 4 }}>Zeit der Messung</Text>
-            <Text style={{ color: c.accent, fontSize: 22, fontWeight: '800', marginBottom: 12 }}>
-              {fmtDate(when)} · {fmtTime(when)}
-            </Text>
-            <View style={s.stepRow}>
-              <Button kind="ghost" title="−1 Tag" onPress={() => shift(-86400000)} style={s.step} />
-              <Button kind="ghost" title="+1 Tag" onPress={() => shift(86400000)} style={s.step} />
-            </View>
-            <View style={s.stepRow}>
-              <Button kind="ghost" title="−1 Std" onPress={() => shift(-3600000)} style={s.step} />
-              <Button kind="ghost" title="+1 Std" onPress={() => shift(3600000)} style={s.step} />
-            </View>
-            <View style={s.stepRow}>
-              <Button kind="ghost" title="−5 Min" onPress={() => shift(-300000)} style={s.step} />
-              <Button kind="ghost" title="+5 Min" onPress={() => shift(300000)} style={s.step} />
-            </View>
-            <View style={s.stepRow}>
-              <Button
-                kind="ghost"
-                title="Jetzt"
-                onPress={() => {
-                  setWhen(new Date());
-                  setCustom(false);
-                }}
-                style={s.step}
-              />
-              <Button title="Fertig" onPress={() => setDateModal(false)} style={s.step} />
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <DateTimeModal
+        visible={dateModal}
+        title="Zeit der Messung"
+        value={when}
+        onChange={(d) => {
+          setWhen(d);
+          setCustom(true);
+        }}
+        onNow={() => {
+          setWhen(new Date());
+          setCustom(false);
+        }}
+        onClose={() => setDateModal(false)}
+      />
     </ScrollView>
   );
 }
@@ -191,8 +167,4 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   field: { width: '31.5%', borderRadius: 14, padding: 10, alignItems: 'center' },
   input: { borderWidth: 1, borderRadius: 12, padding: 12, fontSize: 16, marginTop: 4 },
-  backdrop: { flex: 1, backgroundColor: '#0008', justifyContent: 'center', padding: 24 },
-  sheet: { borderRadius: 16, padding: 18 },
-  stepRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  step: { width: '48.5%' },
 });

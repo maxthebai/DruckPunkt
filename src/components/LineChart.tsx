@@ -13,6 +13,7 @@ export function LineChart({
   min,
   max,
   zones,
+  markers,
   height = 220,
 }: {
   series: Series[];
@@ -21,6 +22,7 @@ export function LineChart({
   min: number;
   max: number;
   zones?: { from: number; to: number; color: string }[];
+  markers?: { t: number; label: string }[];
   height?: number;
 }) {
   const c = useTheme();
@@ -76,6 +78,14 @@ export function LineChart({
               </SvgText>
             );
           })}
+          {markers?.map((mk, i) => (
+            <React.Fragment key={`mk${i}`}>
+              <Line x1={x(mk.t)} x2={x(mk.t)} y1={padT} y2={height - padB} stroke={c.low} strokeWidth={1.5} strokeDasharray="4 4" />
+              <SvgText x={Math.min(x(mk.t) + 3, w - 24)} y={padT + 10} fontSize={10} fontWeight="700" fill={c.low}>
+                {mk.label}
+              </SvgText>
+            </React.Fragment>
+          ))}
           {series.map((s) => (
             <React.Fragment key={s.name}>
               {s.points.length > 1 && (
@@ -95,6 +105,12 @@ export function LineChart({
         </Svg>
       )}
       <View style={{ flexDirection: 'row', marginTop: 4 }}>
+        {markers && markers.length > 0 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}>
+            <View style={{ width: 10, height: 0, borderTopWidth: 2, borderStyle: 'dashed', borderColor: c.low, marginRight: 6 }} />
+            <Text style={{ color: c.muted, fontSize: 13 }}>Medikamentenänderung</Text>
+          </View>
+        )}
         {series.map((s) => (
           <View key={s.name} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}>
             <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: s.color, marginRight: 6 }} />

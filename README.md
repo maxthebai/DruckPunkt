@@ -6,12 +6,12 @@ Alle Daten bleiben lokal auf dem Gerät. Kein Konto, keine Cloud, kein Tracking,
 
 ## Funktionen
 
-- **Messen:** Eigener Zahlenblock für oben, unten und Puls. Datum und Uhrzeit setzt die App automatisch. Notiz-Chips für Stress, Kaffee, Sport und Medikamente.
-- **Verlauf:** Alle Messungen nach Tagen gruppiert. Tippen zum Bearbeiten, nach links wischen zum Löschen.
-- **Trends:** Liniendiagramm für 7, 30 und 90 Tage, Durchschnitt, Morgens/Abends-Vergleich.
+- **Messen:** Eigener Zahlenblock für systolischen und diastolischen Wert sowie Puls. Datum und Uhrzeit setzt die App automatisch. Notiz-Chips für Stress, Kaffee, Sport und Medikamente.
+- **Verlauf:** Messungen und Medikamentenänderungen nach Tagen gruppiert. Tippen zum Bearbeiten (auch der Zeit), nach links wischen zum Löschen. Zu jeder Medikamentenänderung steht der Durchschnitt der 14 Tage davor und danach.
+- **Trends:** Liniendiagramm für 7, 30 und 90 Tage mit Markierungen für Medikamentenänderungen, Durchschnitt, Morgens/Abends-Vergleich und Vergleich vor/nach einer Medikamentenänderung (7, 14 oder 30 Tage).
 - **Ziele:** Serie, Wochenziel mit Fortschrittsring, Abzeichen, Wochenrückblick.
-- **Erinnerungen:** Lokale Benachrichtigungen zu frei wählbaren Zeiten, dazu „In 30 Minuten erinnern“.
-- **Bericht:** PDF und CSV für den Arztbesuch.
+- **Erinnerungen:** Mehrere Erinnerungen mit eigener Uhrzeit und eigenen Wochentagen, Statusanzeige, Test-Benachrichtigung und „In 30 Minuten erinnern“.
+- **Bericht:** PDF und CSV für den Arztbesuch, wahlweise für einen bestimmten Zeitraum (Presets oder eigenes Datum), inklusive Medikamentenänderungen.
 - **Backup:** Alle Daten als eine JSON-Datei sichern (teilen oder direkt in einen Ordner wie „Downloads“ speichern) und wiederherstellen (zusammenführen oder ersetzen, mit Prüfung der Datei).
 
 ## Starten

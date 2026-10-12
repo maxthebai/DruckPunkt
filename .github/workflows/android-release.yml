@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+    # Alternativ: Version in app.json ändern und auf main pushen, dann wird der Tag automatisch angelegt.
+    branches:
+      - main
+    paths:
+      - app.json
   workflow_dispatch:
 
 permissions:
@@ -39,10 +44,16 @@ jobs:
         working-directory: android
         run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon
 
+      - name: Version bestimmen
+        id: ver
+        run: |
+          APP_VERSION=$(node -p "require('./app.json').expo.version")
+          echo "tag=v${APP_VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: APK umbenennen
         id: apk
         run: |
-          VERSION="${GITHUB_REF_NAME:-dev}"
+          VERSION="${{ steps.ver.outputs.tag }}"
           mkdir -p dist
           cp android/app/build/outputs/apk/release/app-release.apk "dist/DruckPunkt-${VERSION}.apk"
           echo "path=dist/DruckPunkt-${VERSION}.apk" >> "$GITHUB_OUTPUT"
@@ -54,9 +65,11 @@ jobs:
           path: dist/*.apk
 
       - name: Release veröffentlichen
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           files: dist/*.apk
           generate_release_notes: true
           body: |

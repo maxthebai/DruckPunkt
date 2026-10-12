@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "de.maxthebai.druckpunkt",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#0F7C86",
         "foregroundImage": "./assets/android-icon-foreground.png",
